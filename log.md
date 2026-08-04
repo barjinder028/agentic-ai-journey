@@ -67,3 +67,80 @@ Day 2:
   file pattern).
 - Repeated code across except blocks (or anywhere) is a signal to
   simplify, not just a style nitpick.
+
+## Day 4 — First real API call, reusable function, knowledge cutoff
+
+### What I covered
+- Getting and using an API key safely
+- Calling a real AI model (Gemini) from Python
+- Wrapping a repeated action into a reusable function
+- Why models can be confidently wrong (knowledge cutoff)
+- What an "agent" actually is, as opposed to a raw model
+
+### API keys and secrets
+- API key = a password, but for code instead of a person
+- Never write a key directly into a .py file, and never paste it
+  anywhere public (chat, GitHub, etc.) — once it's out, treat it as
+  compromised
+- .env file holds secrets in KEY=value format, one per line, no
+  quotes needed
+- .env must be listed in .gitignore so it never gets committed
+- python-dotenv package + load_dotenv() reads the .env file and
+  loads it into os.environ, same as `export` does, but permanent
+  across sessions instead of disappearing when the terminal closes
+
+### The four-step shape of calling an AI model
+1. Load the key (load_dotenv + os.environ)
+2. Create a client (the "phone line" to the provider, logged in
+   with the key)
+3. Send a request (model name + the actual question/content)
+4. Read the response — the real text answer is buried inside a
+   bigger response object, pulled out with something like
+   response.text or response.choices[0].message.content depending
+   on the provider
+
+### Real bug: rate limit (429 error)
+- Got: 429 RESOURCE_EXHAUSTED, limit: 0, on gemini-2.0-flash
+- Cause: free tier model availability had changed — old model name
+  no longer covered, not a mistake in my code
+- Fixed by switching to gemini-2.5-flash, which was actually listed
+  as free tier
+- Lesson: rate limits are expected behavior for any real API, not a
+  bug to avoid — try/except from Day 3 exists partly for exactly
+  this kind of error
+- Rate limits count REQUESTS made in a time window, not whether the
+  content/wording changes between calls
+
+### Reusable ask() function
+- Moved load_dotenv() and client creation OUTSIDE the function —
+  only need to log in once, not once per question
+- The part that changes each call (the question) becomes the
+  function's parameter
+- Function returns the answer as a string, doesn't print it —
+  same return-vs-print rule from Day 2/3, let the caller decide
+  what to do with the result
+
+### Knowledge cutoff
+- Asked the model "what year is it" — it confidently answered 2024,
+  which was wrong
+- This isn't a code bug. The model was trained on data up to some
+  past point and has no built-in way to know anything after that,
+  including today's date, unless it's told
+- Important: it answered confidently and wrong, not "I don't know."
+  Sounding sure and being right are not the same thing with these
+  models
+
+### Brain vs. hands — what an agent actually is
+- The model I called directly = the raw model, no extra tools,
+  nothing but its training data to draw on
+- Gemini's chat product (gemini.google.com) = same kind of model,
+  but wired up with extra tools like live web search, so it can
+  check things instead of guessing
+- An agent = a model (the brain) + tools it's allowed to use
+  (the hands) + the judgment to decide when to use them
+- The date mistake today is the exact reason agents need to exist —
+  if the raw model already knew everything, nobody would need to
+  build tool access around it
+- Next step in the course: start building that tool access myself,
+  starting with something simple like giving the model a way to
+  check the real current date
