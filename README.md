@@ -11,3 +11,5 @@ Full daily log: see [log.md](log.md)
 - Day 2: Python fundamentals — dictionaries, functions, mutability, debugging
 - Day 3: Error handling, file I/O, JSON
 - Day 4: First real API call, reusable functions, knowledge cutoffs
+- Day 5: First tools — connecting Python functions to the model, docstrings, multi-tool calls
+- Day 6: Conversation history — why models have no memory, building a stateful chatbot
