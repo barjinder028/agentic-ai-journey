@@ -223,3 +223,50 @@ This is the actual shift from "model that talks" to "model that
 does something." A tool is nothing fancy, just a normal function
 with a good description, handed to the model, and trusted to be
 used only when actually needed.
+
+## Day 6 — Conversation history, why models have no built-in memory
+
+### What I covered
+- Proved a raw model call has zero memory between calls, tested it directly
+- Learned that "memory" in any chat app is really the full conversation
+  being resent every time, not the model remembering anything itself
+- Built a history list manually, appending both my messages and the
+  model's replies
+- Used a ChatBot class as a working tool, full understanding of
+  class/self pushed to Day 7 on purpose
+
+### The real proof
+- Asked "what is my name" with no history sent: model had no idea
+- Asked the same question after sending full history back: correct
+  answer
+- Same model, same question, only difference was whether past
+  messages were included in the request
+
+### Why both roles matter
+- A list of messages with no reply lines in between doesn't read as
+  a real conversation, it reads as disconnected notes
+- The "model" role entries aren't just labels for me, they're what
+  makes the whole thing legible as an actual back-and-forth
+- Removing them wouldn't delete my name from history, but it would
+  break the shape of the conversation enough that a memory-dependent
+  question wouldn't work properly
+
+### Where history actually lives
+- self.history is a plain Python list, sitting only in memory while
+  the script runs
+- Closing the script or terminal wipes it completely, nothing is
+  saved anywhere permanent
+- Same pattern as Day 3's json.dumps/json.loads could be used to
+  save history to a file and reload it later, not built today, just
+  noted as a natural next step
+
+### Open question, unresolved, follow up on Day 7
+- Used "role": "assistant" instead of "role": "model" by mistake,
+  expected it to error, it didn't crash. Never confirmed whether the
+  memory-dependent third answer was actually correct under the wrong
+  role name, or just didn't fail visibly. Check this properly once
+  class/self is solid.
+
+### Class and self
+- Deliberately not covering this properly today, pushed to Day 7 on
+  purpose rather than half-learning it mixed into another topic
