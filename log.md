@@ -144,3 +144,82 @@ Day 2:
 - Next step in the course: start building that tool access myself,
   starting with something simple like giving the model a way to
   check the real current date
+
+
+## Day 5 — First real tools, connecting functions to the model
+
+### What I covered
+- Writing a plain Python function and handing it to the model as a tool
+- Seeing the model use a tool correctly vs. guessing without one
+- Building a second tool from scratch (add_numbers)
+- Splitting tools into their own file and importing them
+- Reading a function's docstring with __doc__ and help()
+- Watching one request use two different tools correctly
+
+### What a tool actually is
+- A tool is just a normal Python function. Nothing AI about the
+  function itself.
+- You hand the function to the model using tools=[function_name],
+  no parentheses, since you're not calling it, you're introducing it.
+- The model decides on its own whether it needs the tool, based on
+  what was asked. Nothing forces it to use one.
+
+### The docstring matters, it's not just a comment
+- The text in triple quotes under a function definition is read by
+  the model to decide whether that tool is relevant to the question.
+- A vague docstring means the model might not realize the tool applies.
+- Confirmed this by using __doc__ and help() to view a function's
+  docstring directly from code.
+
+### Proof: with tool vs. without tool
+- Asked "what is today's date" WITH get_today_date wired in:
+  correct answer, real date from the system clock.
+- Asked the exact same question with the tools= line removed:
+  model guessed, gave a wrong date and wrong day of the week,
+  stated just as confidently as when it was right.
+- This is the actual point of an agent: giving a model a way to
+  check something instead of only being able to guess from training.
+
+### Type hints on tool functions
+- def add_numbers(a: float, b: float) -> float:
+- The hints tell the model (and anyone reading the code) exactly
+  what kind of value each parameter expects and what comes back.
+- Not just decoration, the model needs this to know how to call
+  the function correctly.
+
+### Splitting into separate files
+- Put get_today_date and add_numbers in their own file, tools.py.
+  That file does nothing on its own, just defines functions.
+- In the main file: from tools import get_today_date, add_numbers
+  Same idea as import os or import json, just importing from a
+  file I wrote instead of a built-in one.
+- Both files need to be in the same folder for a plain import like
+  this to work.
+
+### Multiple tools, one request
+- Asked one question containing two separate asks: today's date,
+  and 59 plus 97.
+- The model quietly split this into two tool calls, one to each
+  function, matched by what each part of the question actually
+  needed, then merged both real answers into one written reply.
+- Not one fixed tool call every time, the model works out how many
+  tools it needs and which ones, fresh, based on the actual question.
+
+### Bugs and mistakes today
+- Typo running the file: typed agnet.py instead of agent.py.
+  Lesson: "file not found" errors are almost always a typo, check
+  with ls first before assuming something bigger is wrong.
+- Used os.environ.get("KEY") instead of os.environ["KEY"]. The
+  .get() version fails silently with None if the key is missing,
+  square brackets crash immediately with a clear error instead.
+  Square brackets are safer for something as important as an API key,
+  since you want to know right away if it's missing.
+- Noticed I had two different names floating around for the same
+  environment variable (GOOGLE_API_KEY vs GENAI_API_KEY). Worth
+  picking one name and using it everywhere, in every file.
+
+### Big idea for today
+This is the actual shift from "model that talks" to "model that
+does something." A tool is nothing fancy, just a normal function
+with a good description, handed to the model, and trusted to be
+used only when actually needed.
