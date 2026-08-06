@@ -1,14 +1,138 @@
-Completed the steup and got familarized with the linex commands
+## Day 1 — Environment setup
 
-- set up WSL and installed ubantu and python.
-- familarized with the git and linux commands. 
+### What I covered
+- Got WSL2 with Ubuntu working on Windows
+- Installed Python, pip, git
+- Set up Git identity and SSH keys properly, linked to GitHub
+- Created the agentic-ai-journey repo and made the first commit
+- Learned what a virtual environment actually does, by comparing
+  package lists inside and outside one
 
-Day 2:
+### Terminal, bash, PowerShell
+- A terminal is just typing commands instead of clicking through
+  folders. Same computer, same files, typed instead of clicked.
+- PowerShell is Windows' own shell. Bash is the shell Linux and
+  Mac use. Same kind of job, different vocabulary.
+- Most tutorials and tools assume bash, since most servers run
+  Linux. WSL gives a real Ubuntu Linux inside Windows so I can
+  follow bash instructions directly instead of translating them.
 
-- Worked through dictionaries and functions.
-- Fixed a bug where I used the whole job dictionary as a key instead of just the city name.
-- Learnt that lists share references when you do b = a but numbers don't.
-- fixed three separate bugs in a broken function including a case-sensitivity typo.
+### Locked myself out, recovered without losing anything
+- Forgot my Ubuntu password partway through setup
+- Fixed it by logging in as root (wsl -d Ubuntu -u root), which
+  skips the password check, then used passwd to set a new one
+- Lesson: almost nothing on a dev machine is unrecoverable, the
+  right move when stuck is to look for the actual recovery path,
+  not panic
+
+### Git identity and GitHub
+- user.name is just the label shown on commits, cosmetic
+- user.email is what GitHub actually uses to match commits to my
+  account. Has to be an address registered on the account or
+  commits won't link to my profile properly.
+- Used GitHub's private noreply email address instead of my real
+  one, since public repos expose the commit email to anyone,
+  including scrapers. Commits still count toward my profile, but
+  my real inbox stays out of it.
+- Set up an SSH key (ssh-keygen) and added the public half to
+  GitHub, so I can push without typing a password every time
+
+### Virtual environments (venv)
+- Every project can build up its own pile of installed packages,
+  and two projects can need different versions of the same
+  package. Without separation, installing one can break the other.
+- python3 -m venv .venv creates an isolated folder just for this
+  project's packages
+- source .venv/bin/activate turns it on for the current terminal,
+  shown by (.venv) appearing at the start of the prompt
+- Proved this to myself: ran pip list with the venv active, then
+  deactivated and ran it again. Completely different lists. The
+  venv's requests version was newer than the system one, proving
+  they really are separate.
+- .venv never goes into Git, added it to .gitignore since it's
+  huge and easily rebuilt by anyone who clones the repo
+
+### Things to remember
+- Ubuntu refuses plain pip install outside a venv on purpose
+  (externally managed environment error), it's protecting its own
+  Python. The fix is always: activate the venv first.
+- git status before git add, every time, to actually see what's
+  about to be committed rather than assuming
+
+## Day 2 — Python fundamentals, placement test
+
+### What I covered
+- Placement test across variables, loops, dictionaries, functions,
+  mutability, and debugging
+- Turned out I already knew more than I thought (input, f-strings,
+  loops, conditionals), so this day was about filling the real gaps
+
+### Real bug found: off-by-one in range()
+- range(1, 100) stops at 99, never reaches 100, since range()
+  includes the start but excludes the end
+- The bug didn't show up in the output because 100 isn't divisible
+  by 3 anyway, so it looked correct by accident
+- Lesson: correct-looking output doesn't prove correct code
+
+### Dictionaries
+- A list holds things by position, a dictionary holds things by
+  name (key). job["title"] reaches in by label instead of by index.
+- Looping over a list of dictionaries gives one dictionary per turn
+- Built a counting pattern: start an empty dict, for each item
+  check "have I seen this key before" (if key in counts), add 1 if
+  yes, start at 1 if no
+- Real bug I hit: used the whole dictionary as the key instead of
+  just the city name (counts[j] instead of counts[city]).
+  TypeError: unhashable type, because dictionaries can be changed
+  after the fact so they can't be used as keys, only fixed values
+  like strings and numbers can.
+- Second bug in the same exercise: had print(counts) BEFORE the
+  loop that fills it, so it printed an empty dict. Order matters,
+  a variable holds whatever was in it at the moment you look, not
+  what will be there later.
+
+### Functions
+- def starts it, parameters are placeholders for whatever gets
+  passed in, return sends a value back to whoever called it
+- return is not print. print shows something and throws it away.
+  return hands the value back so the caller can store it, use it,
+  or pass it along.
+- Wrote average() with a guard at the very top (if len == 0: return
+  0) to avoid crashing on an empty list. The check has to come
+  BEFORE the division, since Python runs top to bottom and a crash
+  stops everything below it from ever running.
+
+### Mutability (lists vs numbers)
+- b = a does not copy a list, it points a second name at the exact
+  same list. Changing it through b changes what a sees too, since
+  there's only ever one list.
+- y = x with numbers looks the same but isn't. Numbers can't be
+  changed in place, only replaced. y = y + 1 makes a brand new
+  number and re-points y at it, x still points at the original,
+  untouched.
+- The real rule: = never copies data, it just points a name at
+  something. Whether that something can be edited in place
+  (mutable, like lists) or only replaced (immutable, like numbers)
+  determines whether a second name sees the change.
+
+### Debugging exercise (fixed a broken function)
+- Missing colon after def greet(names) — every compound statement
+  needs one (def, for, if, while, class), not just functions
+- Used the wrong loop variable name inside the loop (name instead
+  of n), which is just a plain typo, not something deep
+- Result vs result — Python is case sensitive everywhere, always.
+  These are two completely unrelated names as far as Python cares.
+- Deeper issue in the same function, not an error but a design
+  smell: it printed the greetings from inside itself and returned
+  a hardcoded "done" string that had nothing to do with the actual
+  work. Fixed by collecting results into a list and returning that
+  list instead, letting the caller decide what to do with it.
+
+### Things to remember
+- A function that computes something should return it, not print
+  it, so the caller decides what happens next
+- Read error messages properly before guessing, they usually name
+  the exact problem and where it is
 
 ## Day 3 — Error handling, files, JSON
 
@@ -270,3 +394,75 @@ used only when actually needed.
 ### Class and self
 - Deliberately not covering this properly today, pushed to Day 7 on
   purpose rather than half-learning it mixed into another topic
+
+
+## Day 7 — class and self, properly this time
+
+### What I covered
+- What class and self actually are, from scratch, not glossed over
+- Built Person and BankAccount classes by hand
+- Found and fixed a real bug in my own withdraw method, more than once
+- Closed an open question from Day 6 about role names
+
+### The core idea, in plain words
+- A function forgets everything the moment it finishes running.
+  A class lets you bundle data together with functions (methods)
+  so the data survives between calls.
+- Every method automatically receives the object itself as an
+  invisible first argument, every time it's called. self is just
+  the name I choose to catch that argument with, in the method's
+  own definition.
+- __init__ runs once, automatically, the moment a new object is
+  created (Person("Barji", 30) triggers it immediately).
+
+### self.name vs plain name, the actual difference
+- self.name = name attaches the value permanently to the object.
+  It survives after the method ends.
+- name = name (no self) creates an ordinary local variable that
+  gets thrown away the instant the method finishes, same as any
+  variable in any regular function.
+- Tested this directly: removing self from __init__'s parameters
+  entirely causes a real error (too many arguments), because
+  Python always passes the object in first whether or not the
+  method is written to catch it.
+- Tested it again a different way: self.balance = self.balance +
+  amount vs balance = self.balance + amount. Second version reads
+  the correct value but saves it into a variable that vanishes,
+  so the object's real balance never actually changes. No crash,
+  no warning, just silently wrong. Confirmed this by running it
+  and getting 1000 instead of 1500.
+
+### BankAccount, and the bug I actually walked into
+- Built deposit, withdraw, get_balance
+- withdraw first version: checked balance correctly with an if,
+  but only PRINTED "insufficient funds" on failure and returned
+  nothing at all in the success case. Same return-vs-print mistake
+  from Day 2's greet function, showing up again in new clothes.
+- Fixed it to return real values, but got the MEANING backwards
+  first: returned True from the failure branch by mistake. This
+  ran with no errors and confidently reported "It worked!" for a
+  withdrawal that had actually been refused. Caught this by
+  checking the account balance afterward and noticing it hadn't
+  actually decreased.
+- Real fix: return True only when money genuinely leaves the
+  account (inside the successful branch), return False only when
+  the withdrawal is refused (inside the else branch). Verified
+  with two calls in sequence and checked both the return value AND
+  the balance after each one.
+
+### Big lesson from today
+A method that can succeed or fail should return something the
+CALLER can check (True/False, or similar), not just print a
+message for a human to read. And matching the right TYPE of
+return value isn't enough, the MEANING has to be correct too,
+returning the right kind of value (True/False) in the wrong branch
+is just as broken as not returning anything at all, and it's
+harder to catch because nothing errors, it just quietly lies.
+
+### Closed from Day 6
+- Tested "role": "assistant" again deliberately. It didn't crash
+  and gave a correct answer this time too, but decided not to trust
+  that, since it's not Gemini's documented role name ("user" and
+  "model" are). Reverted ChatBot back to "model" properly. Lesson:
+  something not erroring once isn't the same as it being correct
+  or safe to rely on.
