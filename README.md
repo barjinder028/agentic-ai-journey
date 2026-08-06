@@ -1,4 +1,4 @@
-# Agentic AI Journey
+- Day 7: Classes and self from scratch — built Person and BankAccount, caught and fixed a real return-value bug# Agentic AI Journey
 
 Learning to build AI agents from scratch, working toward an
 agentic AI engineering role. Documenting daily progress, code,
@@ -13,3 +13,4 @@ Full daily log: see [log.md](log.md)
 - Day 4: First real API call, reusable functions, knowledge cutoffs
 - Day 5: First tools — connecting Python functions to the model, docstrings, multi-tool calls
 - Day 6: Conversation history — why models have no memory, building a stateful chatbot
+- Day 7: Classes and self from scratch — built Person and BankAccount, caught and fixed a real return-value bug
