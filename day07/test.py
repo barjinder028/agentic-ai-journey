@@ -26,5 +26,7 @@ print(f'Withdraw 5000: {result2}, insufficient funds: {account.get_balance()}') 
 
 
 -----------output-----------
+"""
 Withdraw 300: True, New Balance: 700
 Withdraw 5000: False, insufficient funds: 700
+"""
