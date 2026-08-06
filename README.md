@@ -14,3 +14,4 @@ Full daily log: see [log.md](log.md)
 - Day 5: First tools — connecting Python functions to the model, docstrings, multi-tool calls
 - Day 6: Conversation history — why models have no memory, building a stateful chatbot
 - Day 7: Classes and self from scratch — built Person and BankAccount, caught and fixed a real return-value bug
+- Day 8: Built a proper Agent class combining tools and conversation memory together

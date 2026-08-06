@@ -466,3 +466,64 @@ harder to catch because nothing errors, it just quietly lies.
   "model" are). Reverted ChatBot back to "model" properly. Lesson:
   something not erroring once isn't the same as it being correct
   or safe to rely on.
+
+
+## Day 8 — Combining tools and memory into one Agent class
+
+### What I covered
+- Merged Day 5 (tools) and Day 6 (memory) into a single Agent class,
+  using what Day 7 taught about self
+- Tested a conversation that needed both at once: a tool call for
+  math, reasoning using a tool's result, and memory reaching back
+  across several earlier messages
+- Hit a real 503 error and fixed it by switching models
+
+### The actual build
+- Took Day 6's ChatBot and added self.tools = [get_today_date,
+  add_numbers] in __init__, same way self.history already worked
+- Added tools=self.tools into the generate_content call inside
+  send(), same config pattern from Day 5, just reading from a
+  stored list instead of writing it out fresh each time
+- Nothing new syntactically, this was entirely about combining two
+  things I already knew how to build
+
+### Real bug: 503 error
+- Different from Day 4's 429. 429 meant I'd made too many requests.
+  503 means the server itself was temporarily overloaded, nothing
+  to do with my account or code.
+- Fixed by switching to a different, currently available model
+  (gemini-3.5-flash) instead of the one that was failing
+
+### Model versions, worth remembering
+- Learned gemini-2.5-flash, the model I'd been using since Day 4,
+  is scheduled to shut down in October 2026. Google has a newer
+  3.x generation of models now. Not urgent to change yet, but
+  something to watch and swap out before the shutdown date.
+
+### The real test, and why it mattered
+- Asked one conversation to: state a name, get today's date via a
+  tool, add two numbers via a tool and reason about the result
+  using a second tool's output, then recall both the name and the
+  calculated sum from earlier messages
+- All four answers came back correct, proving tools and memory
+  were working together in one conversation, not as two separate
+  demos
+
+### Why this actually worked (the self question)
+- self.tools and self.history both live on the same object,
+  reachable through the same self inside send()
+- If they lived in two separate, disconnected places with no
+  shared self, send() would have no path to reach one of them at
+  all. self.history would just throw AttributeError, same shape
+  of error as the broken Person example from Day 7.
+- The real lesson: everything a method needs has to be reachable
+  through self, because self is the object's only real connection
+  to its own stored data. This is why adding a new capability to
+  an existing class is just "store it on self too", nothing more
+  complicated than that once self is actually understood.
+
+### Big picture
+First real agent: memory and tools working together, built by
+combining three separate days of learning rather than anything
+brand new. This is genuinely the shape every agent framework does
+under the hood, just with more tools and more structure around it.
