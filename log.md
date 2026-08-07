@@ -527,3 +527,70 @@ First real agent: memory and tools working together, built by
 combining three separate days of learning rather than anything
 brand new. This is genuinely the shape every agent framework does
 under the hood, just with more tools and more structure around it.
+
+## Day 9 — Manual function calling, seeing the automation for real
+
+### What I covered
+- Turned off Automatic Function Calling (AFC) on purpose, to see
+  what the library has actually been doing behind tools= since
+  Day 5
+- Manually read a pending function call out of a response, ran the
+  real Python function myself, and sent the result back by hand
+- Got the exact same final answer as automatic mode gives, proving
+  I'd rebuilt the real mechanism, not something different
+
+### What tools= was actually hiding
+- Every tools= call since Day 5 secretly involved at least two
+  round trips to the model: one where it asks for a function, one
+  where it reads the result and writes the real answer. Automatic
+  Function Calling (AFC) does both invisibly in what looks like one
+  call.
+- Disabled it with automatic_function_calling=
+  types.AutomaticFunctionCallingConfig(disable=True) in
+  GenerateContentConfig
+
+### What the response looks like with AFC off
+- response.text was None, since the model hadn't actually answered
+  the question yet, only asked for help
+- response.function_calls held the real request instead: which
+  function (name), and exactly what to call it with (args), parsed
+  correctly out of a plain English question and matched onto my
+  function's real parameter names
+
+### Running it and sending the result back
+- function_call.args is a dictionary, so add_numbers(**function_call.args)
+  is really the same as calling add_numbers(a=59, b=97) directly,
+  just built dynamically from whatever the model asked for
+- types.Part.from_function_response(name=..., response={"result":
+  result}) packages the real answer, labeled so the model can match
+  it to its own request
+- Had to include THREE things in the final call: my original
+  question, the model's own function call request (pulled from
+  response.candidates[0].content), and my function's response.
+  The model needs to see its own request sitting in the
+  conversation, not just my answer floating alone with no context.
+
+### function_call vs function_response, the actual difference
+- function_call comes FROM the model. It's a request, not an
+  answer. The model can only ask for something to be run, it
+  cannot run code itself.
+- function_response comes FROM me. It's the real result, produced
+  by code actually executing on my machine.
+- This divide (model asks and reads, my code actually does things)
+  is the entire reason tools exist
+
+### Proof it worked
+- Got 156 as the final answer, byte-for-byte the same result
+  automatic mode gave back on Day 8, confirming I'd rebuilt the
+  real mechanism by hand, not something different that just
+  happened to also work
+
+### Why this mattered
+Not every provider (Groq, for example) offers the automatic version
+at all, some require building this exact loop by hand every time.
+Already having done it once for real means this isn't a wall
+waiting for me later.
+
+### Still open
+- Duplicate chat.py / chatbot.py files sitting outside day07/day08
+  folders at the repo root, need to check with ls and clean up
