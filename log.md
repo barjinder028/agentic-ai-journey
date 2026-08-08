@@ -664,3 +664,50 @@ This while loop is the real shape every actual agent framework
 runs underneath its own decoration. Not a fixed number of steps
 decided in advance, just "keep going until the model says it's
 actually finished."
+
+
+## Day 11 — Merging memory, tools, and the loop into one real Agent
+
+### What I covered
+- Combined Day 6 (memory), Day 8 (tools), and Day 10 (the while
+  loop) into a single class for the first time
+- Added a hard round limit so the loop can never run forever
+- Added try/except around the actual tool call, so a broken tool
+  doesn't crash the whole program
+- Tested memory surviving across separate calls to send(), while
+  one of those calls still needed multiple internal tool-call rounds
+
+### The two real gaps closed today
+- max_rounds / rounds: while rounds < max_rounds instead of while
+  True. If the model somehow never finishes, the loop stops on its
+  own and returns an honest message instead of hanging forever
+- try/except around the actual function call: if a tool itself
+  fails, the error gets caught and sent BACK to the model as a
+  normal function response, just labeled "error" instead of
+  "result". The model can react to that instead of the whole
+  program crashing
+
+### What actually merged
+- self.history now lives on the object (from Day 6), so it
+  survives between separate calls to .send(), not just within one
+- Inside send(), the same while-loop structure from Day 10 still
+  runs, multiple tool rounds if needed, before finally returning
+- Every round appends to self.history, not just the final answer,
+  which is what let the third question later recall a number that
+  was only ever produced mid-loop, in an earlier call
+
+### Test and result
+- agent.send("My name is Barji.") — established the name
+- agent.send("Get today's date, take the day number, add 50.") —
+  needed two full tool-call rounds internally (date, then math)
+  before answering
+- agent.send("What's my name, and what was that final number?") —
+  correctly recalled BOTH the name and the number, even though the
+  number only existed inside an earlier call's internal loop, never
+  said as a standalone fact on its own
+
+### Big picture
+This is the real shape from here forward: one class holding memory,
+tools, and a safe, bounded loop together. Everything after this is
+adding more tools and better tool logic on top of this same base,
+not rebuilding it.

@@ -16,3 +16,4 @@ Full daily log: see [log.md](log.md)
 - Day 8: Built a proper Agent class combining tools and conversation memory together
 - Day 9: Disabled automatic function calling and rebuilt the tool-call loop by hand
 - Day 10: Built the real agent loop with while, handling multiple dependent tool calls
+- Day 11: Merged memory, tools, and the loop into one real Agent class, with round limits and tool-failure handling
