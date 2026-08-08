@@ -711,3 +711,75 @@ This is the real shape from here forward: one class holding memory,
 tools, and a safe, bounded loop together. Everything after this is
 adding more tools and better tool logic on top of this same base,
 not rebuilding it.
+
+
+## Day 12 — Embeddings, turning text into comparable meaning
+
+### What I covered
+- What an embedding is and why retrieval needs it
+- Got real embeddings from Gemini's embedding model
+- Built cosine similarity by hand, from scratch
+- Proved that similar meaning scores higher, even with zero shared words
+- Walked through the full retrieval sequence in plain words
+
+### The actual problem this solves
+- Tools solved one blind spot (things the model can check right now,
+  like the date). Embeddings solve a different one: the model has
+  never seen my own documents at all, and I can't just hand over a
+  whole document either, most real documents are too big to fit in
+  one request, and most of it would be irrelevant noise anyway
+- Retrieval means finding just the relevant few paragraphs first,
+  then handing only those to the model
+
+### What an embedding actually is
+- A piece of text turned into a list of numbers
+- Built so that similar MEANING produces similar numbers, not
+  similar spelling or shared words
+- Compared this to GPS coordinates: close together in "meaning
+  space" the same way two nearby cities are close on a map
+
+### Got real embeddings
+- client.models.embed_content(model="gemini-embedding-001",
+  contents=..., config=EmbedContentConfig(output_dimensionality=10))
+- Shrunk dimensions down to 10 just to be able to look at the raw
+  numbers. Real embeddings normally have thousands of numbers,
+  meant for math, not for a human to eyeball
+
+### Cosine similarity, built by hand
+- zip(a, b) pairs up matching positions from two lists at once,
+  new to me today
+- dot_product: multiply matching numbers together, add up the
+  results
+- magnitude: how "long" one embedding is on its own, using dot
+  product against itself
+- cosine_similarity: dot product divided by both magnitudes
+  multiplied together, giving a fair score from -1 to 1 regardless
+  of how large or small the raw numbers are
+
+### Real proof
+- "The cat sat on the mat" vs "A feline rested on the rug": 0.926,
+  despite sharing zero real words
+- "The cat sat on the mat" vs "Stock prices fell sharply today":
+  0.713, noticeably lower
+- This is the actual advantage over old-style keyword search. A
+  document search for "car problems" would find nothing in a
+  document that says "vehicle issues" using keywords, but an
+  embedding search finds it immediately, since they're close in
+  meaning even with totally different words
+
+### The full retrieval sequence, in order
+1. Embed every stored paragraph once, ahead of time, and keep those
+   embeddings around
+2. When a real question comes in, embed the question itself, fresh,
+   right at that moment, same model
+3. Run cosine_similarity between the question's embedding and every
+   stored paragraph embedding, one at a time
+4. Whichever paragraph scores highest is the relevant one
+5. Hand just that paragraph, not everything, to the model as
+   context to actually answer with
+
+### Big picture
+This is the real mechanism behind the document Q&A capstone coming
+up. Everything from here builds on top of this: chunking real
+documents, storing embeddings properly instead of just in a list,
+and doing this search fast across way more than three sentences.
