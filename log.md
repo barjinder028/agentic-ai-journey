@@ -594,3 +594,73 @@ waiting for me later.
 ### Still open
 - Duplicate chat.py / chatbot.py files sitting outside day07/day08
   folders at the repo root, need to check with ls and clean up
+
+
+## Day 10 — The real agent loop, while instead of a fixed number of steps
+
+### What I covered
+- Learned while loops, and why they're different from for loops
+- Built a loop that keeps calling tools until the model is actually
+  done, how ever many rounds that takes
+- Tested it on a question that genuinely needed two separate tool
+  calls, one depending on the result of the other
+- Corrected a misunderstanding about response.candidates
+
+### while vs for
+- for loops over something whose size I already know in advance
+  (a list, a range)
+- while keeps running as long as a condition stays true, used when
+  I don't know ahead of time how many times it needs to run
+- while True: with no break is a real danger, an infinite loop.
+  The way out is an explicit return or break inside the loop, not a
+  condition that goes false on its own
+
+### Why one round wasn't enough today
+- Question: get today's date, take the day number, add 100, tell
+  me the result
+- Couldn't happen in one round like Day 9. The model can't call
+  add_numbers until it actually HAS a real day number, and it only
+  gets that after get_today_date actually runs and returns
+- This needed genuine back and forth: call one tool, get a real
+  answer, use that answer to decide the next tool call, then
+  finally answer in words
+
+### The actual loop
+- available_tools: a dictionary mapping a tool's NAME (as a string)
+  to the real function itself, so the code can look up "which
+  actual function matches what the model just asked for"
+- Loop structure: ask the model, check if it's asking for a tool
+  (response.function_calls), if yes run the real tool and send the
+  result back, if no (empty function_calls) the model is done,
+  return response.text and exit
+- The exit condition is the loop's real doorway out, checked fresh
+  every single time through
+
+### Traced through what actually happened
+- Round 1: model can't answer yet, asks for get_today_date, no
+  args needed
+- Round 2: has the real date now, works out the day number itself
+  (the tool returned the whole date string, not just the day
+  number, the model had to read it and pull the number out), asks
+  for add_numbers with real numbers this time
+- Round 3: has everything it needs, function_calls is empty, hands
+  back the finished answer, loop exits
+- Confirmed the model was doing real reasoning between tool calls,
+  not just relaying tool output word for word
+
+### Corrected misunderstanding: response.candidates
+- Thought [0] meant "picking the highest-confidence response out of
+  several the model generated automatically"
+- Actually: by default Gemini only ever generates ONE candidate.
+  [0] just means "the only one that exists", nothing was compared
+  or ranked to get there
+- There IS a real confidence-like score (avgLogprobs) the API can
+  expose, but it's not used to auto-pick anything behind the
+  scenes. I'd have to explicitly request multiple candidates and
+  compare them myself in code if I ever wanted that
+
+### Big picture
+This while loop is the real shape every actual agent framework
+runs underneath its own decoration. Not a fixed number of steps
+decided in advance, just "keep going until the model says it's
+actually finished."
