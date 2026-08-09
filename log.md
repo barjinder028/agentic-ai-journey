@@ -783,3 +783,156 @@ This is the real mechanism behind the document Q&A capstone coming
 up. Everything from here builds on top of this: chunking real
 documents, storing embeddings properly instead of just in a list,
 and doing this search fast across way more than three sentences.
+
+
+## Day 13 — Chunking a real document, formalizing search, and a real limitation
+
+### What I covered
+- Split a real multi-paragraph document into separate chunks
+- Embedded every chunk once and stored embeddings alongside their
+  original text
+- Built a proper search() function, formalizing yesterday's manual
+  cosine similarity comparison
+- Hit two real bugs: a NameError from an unsaved file, and a typo
+  crashing a dictionary lookup
+- Found a genuine limitation in embedding search: high similarity
+  score does not mean correct answer
+
+### Why documents get chunked
+- Embedding models have input limits, a long document might not
+  even fit as one piece
+- Even if it did fit, one embedding for a whole multi-topic
+  document would be a blurry average, not sharp enough to match a
+  specific question
+- Fix: split into smaller pieces (paragraphs here) first, embed
+  each one separately, so search can zero in on the right piece
+
+### New syntax today
+- document.strip().split("\n\n") splits text apart at blank lines,
+  exactly where paragraphs break
+- List comprehension: [p.strip() for p in ...] is a compact way of
+  writing a for loop that builds a new list, same result as writing
+  the full loop out, just shorter
+- scored.sort(key=lambda x: x["score"], reverse=True): key= tells
+  sort what to sort BY, since each item is a dictionary not a plain
+  number. lambda x: x["score"] is a tiny throwaway function just
+  for this one sort. reverse=True means highest score first
+
+### Real bug 1: NameError from an unsaved file
+- Pasted code into chat that looked correct, but the actual file
+  on disk was missing three whole functions
+- Cause: edited the file in VS Code but never actually saved before
+  running it, so Python read an older version of the file than what
+  was showing in the editor
+- Fixed by checking directly with cat chunking.py, which showed the
+  real file content, not what the editor displayed
+- Lesson: when code looks right but Python disagrees, check the
+  actual file on disk directly, don't argue with the editor
+
+### Real bug 2: typo in a dictionary key
+- Wrote r["scorae"] instead of r["score"] in a print statement
+- Crashed with KeyError, the dictionary version of a NameError,
+  same root cause as Day 5's agnet.py typo, just a different kind
+  of name this time
+
+### The real finding: similarity score is not correctness
+- Asked "who climbed the tallest mountain": Mount Everest paragraph
+  correctly scored highest (0.846), even though the paragraph never
+  uses the word "climbed", only "summit". Real proof that meaning
+  matching works, not just keyword overlap.
+- Asked "which structure took centuries to build": Eiffel Tower
+  scored highest (0.957), but the Great Wall paragraph is the
+  factually correct answer (explicitly says construction "began
+  over 2,000 years ago and continued through several dynasties").
+  Eiffel Tower was completed for a single event in 1889, nothing
+  about centuries.
+- Nothing crashed. The code ran perfectly and still returned the
+  less correct answer as the top result, because both paragraphs
+  share general topic overlap (structures, dates, engineering,
+  landmarks) that the embedding picks up on, without actually
+  reasoning through the specific logic of "duration" in the
+  question
+
+### Big picture lesson
+A high similarity score means "this is about the same general
+topic," not "this correctly answers the question." Those are
+different things. A real retrieval system can't blindly trust its
+top result, that result is a first guess that still needs
+validating, either by the model reasoning over the retrieved
+context, or by some check layered on top, not something to hand
+straight to a user as if it were guaranteed correct.## Day 13 — Chunking a real document, formalizing search, and a real limitation
+
+### What I covered
+- Split a real multi-paragraph document into separate chunks
+- Embedded every chunk once and stored embeddings alongside their
+  original text
+- Built a proper search() function, formalizing yesterday's manual
+  cosine similarity comparison
+- Hit two real bugs: a NameError from an unsaved file, and a typo
+  crashing a dictionary lookup
+- Found a genuine limitation in embedding search: high similarity
+  score does not mean correct answer
+
+### Why documents get chunked
+- Embedding models have input limits, a long document might not
+  even fit as one piece
+- Even if it did fit, one embedding for a whole multi-topic
+  document would be a blurry average, not sharp enough to match a
+  specific question
+- Fix: split into smaller pieces (paragraphs here) first, embed
+  each one separately, so search can zero in on the right piece
+
+### New syntax today
+- document.strip().split("\n\n") splits text apart at blank lines,
+  exactly where paragraphs break
+- List comprehension: [p.strip() for p in ...] is a compact way of
+  writing a for loop that builds a new list, same result as writing
+  the full loop out, just shorter
+- scored.sort(key=lambda x: x["score"], reverse=True): key= tells
+  sort what to sort BY, since each item is a dictionary not a plain
+  number. lambda x: x["score"] is a tiny throwaway function just
+  for this one sort. reverse=True means highest score first
+
+### Real bug 1: NameError from an unsaved file
+- Pasted code into chat that looked correct, but the actual file
+  on disk was missing three whole functions
+- Cause: edited the file in VS Code but never actually saved before
+  running it, so Python read an older version of the file than what
+  was showing in the editor
+- Fixed by checking directly with cat chunking.py, which showed the
+  real file content, not what the editor displayed
+- Lesson: when code looks right but Python disagrees, check the
+  actual file on disk directly, don't argue with the editor
+
+### Real bug 2: typo in a dictionary key
+- Wrote r["scorae"] instead of r["score"] in a print statement
+- Crashed with KeyError, the dictionary version of a NameError,
+  same root cause as Day 5's agnet.py typo, just a different kind
+  of name this time
+
+### The real finding: similarity score is not correctness
+- Asked "who climbed the tallest mountain": Mount Everest paragraph
+  correctly scored highest (0.846), even though the paragraph never
+  uses the word "climbed", only "summit". Real proof that meaning
+  matching works, not just keyword overlap.
+- Asked "which structure took centuries to build": Eiffel Tower
+  scored highest (0.957), but the Great Wall paragraph is the
+  factually correct answer (explicitly says construction "began
+  over 2,000 years ago and continued through several dynasties").
+  Eiffel Tower was completed for a single event in 1889, nothing
+  about centuries.
+- Nothing crashed. The code ran perfectly and still returned the
+  less correct answer as the top result, because both paragraphs
+  share general topic overlap (structures, dates, engineering,
+  landmarks) that the embedding picks up on, without actually
+  reasoning through the specific logic of "duration" in the
+  question
+
+### Big picture lesson
+A high similarity score means "this is about the same general
+topic," not "this correctly answers the question." Those are
+different things. A real retrieval system can't blindly trust its
+top result, that result is a first guess that still needs
+validating, either by the model reasoning over the retrieved
+context, or by some check layered on top, not something to hand
+straight to a user as if it were guaranteed correct.

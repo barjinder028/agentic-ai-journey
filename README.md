@@ -18,3 +18,4 @@ Full daily log: see [log.md](log.md)
 - Day 10: Built the real agent loop with while, handling multiple dependent tool calls
 - Day 11: Merged memory, tools, and the loop into one real Agent class, with round limits and tool-failure handling
 - Day 12: Embeddings and cosine similarity, built the core retrieval mechanism by hand
+- Day 13: Chunked a real document, built a formal search function, found a real limitation in similarity-based retrieval
