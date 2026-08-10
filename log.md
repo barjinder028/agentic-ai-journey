@@ -936,3 +936,100 @@ top result, that result is a first guess that still needs
 validating, either by the model reasoning over the retrieved
 context, or by some check layered on top, not something to hand
 straight to a user as if it were guaranteed correct.
+
+
+## Day 14 — Closing the retrieval gap, a real RAG pipeline
+
+### What I covered
+- Widened search from top_n=1 to top_n=3, giving the model multiple
+  candidates instead of trusting one blind result
+- Wrote an explicit grounding prompt: answer only from context,
+  say "I don't know" if the context doesn't contain the answer
+- Tested it directly against yesterday's actual failure case
+- Tested it against a question the document genuinely cannot answer
+
+### The actual fix for yesterday's problem
+- Yesterday, search handed back exactly one paragraph and there was
+  no way to catch it being wrong
+- Today, three candidates go to the model together, and the model
+  itself, which can actually read and reason, works out which one
+  (if any) really answers the question, rather than blindly trusting
+  whichever one scored highest mathematically
+
+### rag_answer(), the real RAG shape
+- "\n\n".join([r["text"] for r in results]) glues the retrieved
+  paragraphs into one context block, same list comprehension style
+  from Day 13
+- The prompt explicitly instructs: answer ONLY using the given
+  context, and say "I don't know based on the given context" if the
+  answer isn't actually there. Not hoping the model behaves well,
+  telling it exactly what to do in both cases
+
+### Real proof, both cases
+- "Which structure took centuries to build": correctly answered
+  Great Wall of China, even though Eiffel Tower still scored higher
+  in the raw search (0.957 vs 0.843). The model reasoned past an
+  imperfect retrieval ranking by actually reading the candidates.
+- "What is the capital of Japan": correctly said it didn't know,
+  based on the given context, instead of answering from its own
+  general knowledge. This is Day 4's original lesson (models
+  guessing confidently) actually solved this time, not just
+  avoided. A model with no grounding instructions would have
+  answered "Tokyo" confidently and correctly, technically right but
+  defeating the entire purpose of staying grounded to a specific
+  document.
+
+### Big picture
+This is a real, working RAG pipeline end to end: chunk a document,
+embed the chunks, search by meaning, hand multiple candidates to
+the model with explicit grounding rules, and get answers that are
+either correctly reasoned from real context or honestly refused.
+This is the actual mechanism the document Q&A capstone is built on,
+not a simplified version of it.## Day 14 — Closing the retrieval gap, a real RAG pipeline
+
+### What I covered
+- Widened search from top_n=1 to top_n=3, giving the model multiple
+  candidates instead of trusting one blind result
+- Wrote an explicit grounding prompt: answer only from context,
+  say "I don't know" if the context doesn't contain the answer
+- Tested it directly against yesterday's actual failure case
+- Tested it against a question the document genuinely cannot answer
+
+### The actual fix for yesterday's problem
+- Yesterday, search handed back exactly one paragraph and there was
+  no way to catch it being wrong
+- Today, three candidates go to the model together, and the model
+  itself, which can actually read and reason, works out which one
+  (if any) really answers the question, rather than blindly trusting
+  whichever one scored highest mathematically
+
+### rag_answer(), the real RAG shape
+- "\n\n".join([r["text"] for r in results]) glues the retrieved
+  paragraphs into one context block, same list comprehension style
+  from Day 13
+- The prompt explicitly instructs: answer ONLY using the given
+  context, and say "I don't know based on the given context" if the
+  answer isn't actually there. Not hoping the model behaves well,
+  telling it exactly what to do in both cases
+
+### Real proof, both cases
+- "Which structure took centuries to build": correctly answered
+  Great Wall of China, even though Eiffel Tower still scored higher
+  in the raw search (0.957 vs 0.843). The model reasoned past an
+  imperfect retrieval ranking by actually reading the candidates.
+- "What is the capital of Japan": correctly said it didn't know,
+  based on the given context, instead of answering from its own
+  general knowledge. This is Day 4's original lesson (models
+  guessing confidently) actually solved this time, not just
+  avoided. A model with no grounding instructions would have
+  answered "Tokyo" confidently and correctly, technically right but
+  defeating the entire purpose of staying grounded to a specific
+  document.
+
+### Big picture
+This is a real, working RAG pipeline end to end: chunk a document,
+embed the chunks, search by meaning, hand multiple candidates to
+the model with explicit grounding rules, and get answers that are
+either correctly reasoned from real context or honestly refused.
+This is the actual mechanism the document Q&A capstone is built on,
+not a simplified version of it.
