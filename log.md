@@ -1033,3 +1033,69 @@ the model with explicit grounding rules, and get answers that are
 either correctly reasoned from real context or honestly refused.
 This is the actual mechanism the document Q&A capstone is built on,
 not a simplified version of it.
+
+
+## Day 15 — Real evaluation, a hidden bug, and the actual root cause
+
+### What I covered
+- Built an evaluation set with known correct answers for each question
+- Measured retrieval accuracy as a real number, top-1 and top-3
+- Found the aggregate number hid two separate failures, both the same paragraph
+- Tested a dimensionality hypothesis, got a result that looked
+  clean but was actually wrong due to a bug in my own test
+- Caught the bug on review, before committing, fixed it, and got
+  the real, correct result
+
+### Eval set and accuracy function
+- eval_set: five questions, each with a known correct chunk index,
+  since I wrote the document myself
+- evaluate_retrieval(): runs real search() on each question, checks
+  if the expected paragraph is in the results, counts correct out
+  of total
+- Rewrote it to print PASS/FAIL per question, with expected vs
+  actual text on failures, since one aggregate percentage hid which
+  questions failed and why
+
+### First numbers, and the real bug hiding behind them
+- Top-1 accuracy: 60%, two failures, both the Great Wall paragraph
+  losing (once to Everest, once to Eiffel Tower)
+- First attempt to test this: re-embedded the document chunks at
+  full dimension (no output_dimensionality set), concluded
+  compression wasn't the cause since the same 60% and same two
+  failures came back
+- That conclusion was wrong. search() still had
+  output_dimensionality=10 hardcoded on the QUESTION side only.
+  zip() in my own dot_product doesn't error on mismatched lengths,
+  it just silently stops at the shorter list, so the comparison was
+  quietly using only the first 10 numbers of every full chunk
+  embedding, not the real ones. No crash, no warning, a fully
+  plausible-looking wrong result
+- Caught this on a review pass before committing, not by the code
+  failing
+
+### The real, fixed test
+- Removed output_dimensionality entirely from search() too, so the
+  question and the chunks are compared at the same true full
+  dimension
+- Result: 100% at both top-1 and top-3, every failure gone
+  completely, not just reduced
+
+### Actual root cause, corrected
+- Dimensionality WAS a real part of the problem, contrary to my
+  first, buggy test. Using full embeddings on both sides fixed
+  every failure in this eval set on its own, no chunking change
+  needed at all
+- The earlier sentence-splitting experiment is still a real,
+  separate, valid finding (splitting into single sentences broke
+  pronoun references and made results worse), but it wasn't the fix
+  for THIS particular failure. Two different real findings, worth
+  keeping both, but not the same one
+
+### Why this matters more than the fix itself
+A test that runs clean and gives a plausible number can still be
+silently wrong, in my own evaluation code, not just in the system
+being evaluated. Reviewing the actual comparison being made, not
+just trusting a clean run, is what caught this before it became a
+false conclusion in a real report. This is the same discipline as
+Day 2's counts bug and Day 4's wrong date, just now showing up
+inside my own test harness instead of the system under test.
