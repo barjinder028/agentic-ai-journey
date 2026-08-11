@@ -1099,3 +1099,64 @@ just trusting a clean run, is what caught this before it became a
 false conclusion in a real report. This is the same discipline as
 Day 2's counts bug and Day 4's wrong date, just now showing up
 inside my own test harness instead of the system under test.
+
+
+## Day 16 — Caching embeddings, and three real bugs on the way there
+
+### What I covered
+- Learned why recomputing embeddings on every run is wasteful, and
+  fixed it with a simple cache to a JSON file
+- json.dump() / json.load() do in one step what dumps()/loads() plus
+  a separate write/read did before
+- os.path.exists() to check whether a cache file is already there
+- Hit and fixed three real, separate bugs along the way
+
+### The actual caching logic
+- get_or_create_embeddings(): if a cache file exists, load and
+  return it, skip the API entirely. If not, compute fresh, save to
+  the file, then return it
+- json.dump(data, f) converts AND writes in one line, instead of
+  json.dumps() then f.write() separately
+- Confirmed it properly: fresh run said "No cache found, computing
+  embeddings..." and took real time. Second run said "Loading
+  cached embeddings..." and was instant, no API call
+
+### Bug 1: curly braces instead of quotes
+- Tried to write a list of paragraphs using { } around raw,
+  unquoted English text
+- { } means dictionary or set in Python, not "a block of text".
+  Needed a list [ ] with each paragraph wrapped in " " to make it
+  an actual string
+- SyntaxError, invalid syntax, was Python correctly refusing to
+  guess what unquoted words inside { } were supposed to mean
+
+### Bug 2: a leftover block silently undoing a working fix
+- After fixing the chunks list, an old block from a previous
+  version of the file was still sitting further down: chunks = []
+  followed by a loop reading a document variable that no longer
+  existed
+- This wiped out the good chunks list immediately, then crashed on
+  the very next line trying to read a variable that was never
+  defined in this file
+- Lesson from Day 13 came back directly here: don't trust what you
+  think you edited, check the real file with cat when something
+  doesn't add up
+
+### Bug 3: an empty cache file, a different failure than "no file"
+- os.path.exists() only checks whether a file exists, not whether
+  there's anything usable inside it
+- An empty embeddings.json (leftover from an earlier crash) passed
+  the exists() check, got handed straight to json.load(), and
+  crashed with "Expecting value: line 1 column 1", JSON's way of
+  saying it found literally nothing to parse
+- Fixed by deleting the empty file and letting a real one get
+  created fresh. A real fix for later, not done today: the cache
+  check should also confirm the file actually has valid content,
+  not just that it exists
+
+### Big picture
+This is a real, working cache now, but more importantly, today was
+proof that reading actual error messages and checking the real file
+on disk, not guessing or assuming an edit landed, is still the same
+method that's worked every single day this week, just applied to a
+messier, multi-bug session instead of one clean lesson.
