@@ -23,3 +23,4 @@ Full daily log: see [log.md](log.md)
 - Day 15: Built a real evaluation set, caught a hidden bug in my own eval code, found the true root cause
 - Day 16: Cached embeddings to a JSON file, debugged three real bugs along the way
 - Day 17: Added a hash check so the embedding cache actually detects when the document changes
+- Day 18: Ran the full pipeline on a real resume, found and diagnosed a genuine similarity-search limitation and an eval-design fragility

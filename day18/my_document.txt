@@ -1,0 +1,100 @@
+BARJINDER SINGH
+Agentic AI Engineer
+LangChain · LangGraph · RAG · Multi-Agent Systems · MCP · Python
+
+Hoshiarpur, Punjab, India  |  +91 7009628562  |  barjinder028@gmail.com
+GitHub: github.com/barjinder028  |  LinkedIn: linkedin.com/in/barji
+
+SUMMARY:
+Agentic AI Engineer with a hands-on foundation in Python, LLM
+applications, and autonomous agent systems, backed by 7+ years in
+cloud operations and QA on ML-integrated systems. Builds agents from
+scratch - tool and function calling, agent loops, memory, and RAG
+pipelines - with LangChain, LangGraph, the OpenAI Agents SDK, and the
+Model Context Protocol (MCP). Oracle- and IBM-certified in Agentic AI,
+with public projects spanning retrieval-augmented generation,
+multi-agent orchestration, and LLM evaluation. Brings a strong
+reliability mindset: years of test automation and root-cause analysis
+translate directly into agents that fail gracefully and are rigorously
+evaluated.
+
+CORE COMPETENCIES:
+Agentic AI & LLMs
+LLM Application Development · Tool / Function Calling · Agent Loops ·
+Multi-Agent Orchestration · Prompt Engineering · LLM Evaluation
+
+Frameworks & Protocols
+LangChain · LangGraph · OpenAI Agents SDK ·
+Model Context Protocol (MCP) · RAG
+
+Retrieval & RAG
+Embeddings · Vector / Cosine-Similarity Search · Document Chunking ·
+Grounded Generation · Retrieval Evaluation
+
+Programming & Cloud
+Python · SQL · REST APIs · Git · Microsoft Azure · Azure AI
+
+Engineering Practices
+Test Automation · Root Cause Analysis · Evaluation Harnesses ·
+Debugging · Failure Handling
+
+PROJECTS:
+Custom Agent Framework - agentic-ai-journey            (Python · OpenAI SDK)
+  - Built an autonomous Agent class in Python from scratch, integrating
+    tool/function calling, conversation memory, and a hand-written agent
+    loop with round limits and graceful tool-failure handling.
+  - Implemented manual function-calling orchestration (bypassing
+    automatic calling) to reliably chain multiple dependent tool calls.
+  - Maintained a public, daily-logged repository (29+ commits)
+    documenting code and engineering decisions throughout the build.
+
+RAG Pipeline with Evaluation Harness                   (Python · Embeddings)
+  - Built a retrieval-augmented generation pipeline end to end: document
+    chunking, embeddings, cosine-similarity search, and grounded
+    generation with honest refusal when retrieval is insufficient.
+  - Created a formal evaluation set and harness, caught a hidden bug in
+    the evaluation code, and traced it to the true root cause.
+  - Optimized retrieval with hash-based embedding caching that detects
+    document changes and avoids unnecessary recomputation.
+
+RAG HR Assistant & Multi-Agent Procurement Workflow    (LangChain · LangGraph)
+  - Building a RAG-powered HR assistant and a multi-agent procurement
+    workflow using LangChain and LangGraph.
+  - Applying multi-agent orchestration and LLM evaluation to realistic,
+    multi-step business workflows.
+
+PROFESSIONAL EXPERIENCE:
+Senior Cloud Engineer - AI Quality Evaluation          May 2025 - Jan 2026
+LTIMindtree (LTM)
+  - Evaluated AI and ML model outputs for accuracy, consistency, and
+    reliability using Python and structured evaluation criteria.
+  - Performed root-cause analysis on model failures and edge cases,
+    improving output quality and reducing recurring issues.
+  - Authored evaluation guidelines and documentation that standardized
+    how model quality was measured across the team.
+
+Quality Auditor - QA on ML-Integrated Systems          Jan 2020 - May 2025
+Amazon, Hyderabad
+  - Ran large-scale quality assurance and audit workflows on
+    ML-integrated data systems, sustaining 96%+ accuracy.
+  - Drove a 25% reduction in recurring defects through root-cause
+    analysis and process improvements.
+  - Built systematic validation checks, including Regex-based pattern
+    checks, to catch errors before delivery.
+
+Senior Data Associate - Quality & Data Operations      Jun 2018 - Dec 2019
+Wipro, Hyderabad
+  - Performed QA and validation on high-volume datasets feeding
+    downstream ML and analytics systems.
+  - Applied detailed guidelines and quality checks to ensure reliable,
+    consistent data.
+
+CERTIFICATIONS:
+  - Oracle Agentic AI Certified Foundations Associate
+  - IBM - Make Agentic AI Work for You
+  - Oracle Cloud Infrastructure AI Foundations Associate
+  - Microsoft Certified: Azure Fundamentals (AZ-900)
+
+EDUCATION
+Bachelor of Technology, Mechanical Engineering                     2017
+Punjab Technical University

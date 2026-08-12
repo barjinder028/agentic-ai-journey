@@ -1228,3 +1228,91 @@ again: when a result doesn't match the prediction, check what's
 actually in the real file before assuming the new logic itself is
 wrong.
 
+
+## Day 18 — Real document, real bugs, a genuine content-level finding
+
+### What I covered
+- Pointed the full pipeline at a real document (my own resume)
+  instead of practice paragraphs
+- Extended eval_set to support multiple acceptable answers per
+  question (expected_chunk_indices as a list, checked with any())
+- Chased a real retrieval failure through several wrong guesses
+  before finding the actual cause
+- Found a genuine, non-bug limitation in semantic search
+- Found a real fragility in my own eval design
+
+### Multi-answer eval questions
+- expected_chunk_indices: [0, 1] instead of a single index, for
+  questions with more than one acceptable correct chunk
+- any(text in retrieved_texts for text in expected_texts): passes
+  if AT LEAST ONE acceptable answer was found. all() would be the
+  stricter version, requiring every listed answer to show up
+
+### Chasing the Amazon question failure, several wrong turns first
+- First guess: the Day 15 dimensionality bug again (question
+  embedded small, chunks embedded full). Checked the actual code,
+  ruled out, neither side set output_dimensionality
+- Second guess: a stale cache holding embeddings from an older,
+  buggy version of the script. Deleted the cache, forced a fresh
+  compute, same failure persisted. Ruled out.
+- Real cause, found by comparing scores side by side instead of
+  just PASS/FAIL: the question contained my own name ("Barjinder"),
+  which strongly matched chunk 0 (name and title) and chunk 1
+  (contact info), pulling them above the real answer
+
+### Testing the name theory, and finding a second real cause
+- Removed my name from the question, added a real specific detail
+  from the resume (the actual date range) instead. The real Amazon
+  chunk jumped up, but the chunk containing "PROFESSIONAL
+  EXPERIENCE" (merged with the first job, LTIMindtree, because of
+  how blank lines sat in the original file) still won, since it
+  literally shares the word "experience" with the question
+- Tried splitting the heading into its own separate chunk to give
+  every job equal footing. Confirmed Day 17's hash correctly
+  detected the real change and recomputed automatically when this
+  edit was made
+
+### The real, final finding: a heading can beat real content
+- Even split into its own three-word chunk, "PROFESSIONAL
+  EXPERIENCE:" still scored highest (0.67-0.684 across runs), ahead
+  of the actual Amazon paragraph (0.666)
+- This is not a bug. A short chunk sharing a literal word with the
+  question can legitimately outscore a full, correct paragraph that
+  doesn't repeat that exact word. Genuine limitation of similarity
+  search, same category as Day 15's Great Wall finding, different
+  specific cause
+- At top_n=1 this is a real failure (50% accuracy). At top_n=3, the
+  real Amazon chunk is close enough behind the top result to land
+  inside the wider net and recover completely (100% accuracy), same
+  safety net built on Day 14
+
+### A second real bug, in my own eval design
+- Editing the document (adding a blank line) shifted every chunk
+  index after it by one. A hardcoded expected_chunk_indices that was
+  correct before the edit silently pointed at the wrong chunk
+  afterward, with zero warning
+- The resulting FAIL had nothing to do with retrieval quality, it
+  was my own eval set going stale the moment the document changed
+- Real conclusion: hardcoded position numbers are fragile on any
+  document that keeps changing. A sturdier design would check
+  whether a distinctive piece of the expected TEXT shows up in
+  results, not a position number that silently shifts. Noted as a
+  real fix for next time, not solved today
+
+### End of day state
+- Ended the day with the document back in its original, unsplit
+  form (heading merged with the first job), the version most of
+  today's findings were diagnosed and confirmed against. The
+  split-heading version was a real, useful experiment along the way
+  but wasn't kept in the final file. Learned firsthand, twice, that
+  the actual file on disk has to be checked directly (grep) rather
+  than trusted from memory or an editor's appearance
+
+### Big picture
+Real documents are messier than four tidy practice paragraphs, and
+today proved that in three genuinely different ways: a real
+vocabulary-matching limitation in semantic search, a structural
+accident in how the source document was formatted, and a fragility
+in my own evaluation code's design. All three are worth keeping
+in a capstone writeup honestly, not smoothed over into a clean
+number.
