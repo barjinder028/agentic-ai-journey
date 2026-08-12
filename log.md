@@ -1160,3 +1160,71 @@ proof that reading actual error messages and checking the real file
 on disk, not guessing or assuming an edit landed, is still the same
 method that's worked every single day this week, just applied to a
 messier, multi-bug session instead of one clean lesson.
+
+
+## Day 17 — Making the cache trustworthy with a hash check
+
+### What I covered
+- Learned what a hash is and why it's the right tool for "has this
+  document changed since I last saved a cache"
+- Rebuilt get_or_create_embeddings to store a fingerprint alongside
+  the embeddings, and check it before trusting the cache
+- Hit a real NameError caused by an active line getting accidentally
+  commented out
+- Genuinely tested the hash logic by editing real content and
+  confirming a stale cache gets correctly rejected
+
+### What a hash actually is
+- Feed it any text, get back a short, fixed-length fingerprint
+- The exact same input always produces the exact same fingerprint
+- Even a tiny change, one character, produces a completely
+  different fingerprint. Doesn't say WHAT changed, only THAT
+  something changed, which is exactly what's needed here
+- hashlib.sha256(text.encode()).hexdigest(). .encode() converts
+  text into the raw byte form hashing actually works on
+
+### The real gap this closes
+- Yesterday's cache only checked whether a file existed, never
+  whether it still matched the current document
+- Editing a paragraph, or adding a new one, would have silently
+  loaded stale, wrong embeddings forever, no error, no warning
+- Today: get_chunks_hash() combines all chunks into one string and
+  hashes it. That hash gets saved alongside the embeddings in the
+  cache file. On load, the CURRENT document's hash gets compared
+  against the SAVED hash. Only a match means the cache is trusted
+
+### cached_data.get("hash") instead of square brackets
+- .get() returns None quietly if the key doesn't exist, instead of
+  crashing
+- Matters here because an older cache file (saved before today's
+  hash logic existed) wouldn't have a "hash" key at all. .get()
+  handles that safely, falls through to recomputing instead of
+  crashing on a missing key
+
+### Real bug: an active line accidentally commented out
+- chunk_embeddings = get_or_create_embeddings(chunks) had a # in
+  front of it, so it silently never ran at all
+- Caused a NameError further down, since chunk_embeddings genuinely
+  never got created
+- Found it with grep -n "chunk_embeddings =" chunking4.py instead
+  of scrolling and guessing, same "ask the real file directly"
+  instinct from Day 13 and Day 16, just using a faster tool for it
+  this time
+
+### The actual proof today was built for
+- First test after the fix: real edit made to a chunk, but cache
+  still said "Loading cached embeddings...", not "Document
+  changed...". Didn't assume the hash logic was broken, verified
+  with grep whether the edit had actually landed in the real file
+  and whether an old duplicate chunks list was silently overriding
+  the edited one, same pattern as Day 16's bugs
+- Once that was sorted, reran it: "Document changed, recomputing
+  embeddings..." fired correctly, exactly as it should have
+
+### Big picture
+The cache is now something that could actually be trusted on a real
+capstone document, not just a toy. And the debugging pattern held
+again: when a result doesn't match the prediction, check what's
+actually in the real file before assuming the new logic itself is
+wrong.
+
