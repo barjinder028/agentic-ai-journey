@@ -24,3 +24,4 @@ Full daily log: see [log.md](log.md)
 - Day 16: Cached embeddings to a JSON file, debugged three real bugs along the way
 - Day 17: Added a hash check so the embedding cache actually detects when the document changes
 - Day 18: Ran the full pipeline on a real resume, found and diagnosed a genuine similarity-search limitation and an eval-design fragility
+- Day 19: Fixed the eval fragility from Day 18, evaluation now checks retrieved text instead of a fragile chunk index

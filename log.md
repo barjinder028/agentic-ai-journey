@@ -1316,3 +1316,68 @@ accident in how the source document was formatted, and a fragility
 in my own evaluation code's design. All three are worth keeping
 in a capstone writeup honestly, not smoothed over into a clean
 number.
+
+## Day 19 — Fixing the eval fragility from Day 18
+
+### What I covered
+- Replaced expected_chunk_indices (fragile position numbers) with
+  expected_text_contains (a real word or phrase that should appear
+  in a correct answer)
+- Rewrote evaluate_retrieval to check retrieved TEXT for that
+  phrase, instead of comparing against a hardcoded chunk position
+- Fixed a real TypeError caused by an old function call not matching
+  a changed function signature
+- Reran Day 18's exact breaking scenario (editing the document,
+  shifting every chunk index after the edit) and confirmed the new
+  eval survives it correctly
+
+### The actual fix
+- Old: expected_chunk_indices: [13], compared against chunks[13].
+  Broke silently the moment an edit shifted what sat at position 13
+- New: expected_text_contains: ["Amazon"], checked with
+  any(phrase in combined_retrieved for phrase in ...). Doesn't care
+  about position at all, only whether the real answer's content
+  actually got retrieved
+- evaluate_retrieval no longer needs chunks passed in at all, a
+  visible sign the fragility is gone, it only depends on what
+  search() actually returns now
+
+### Real bug: function signature changed, call site didn't
+- Removed chunks as a parameter from evaluate_retrieval, but the
+  code calling it still passed chunks as an argument
+- Produced a confusing error: "got multiple values for argument
+  'top_n'", not because top_n was wrong, but because the extra
+  chunks argument shifted every later argument over by one position,
+  silently colliding with top_n
+- Lesson: changing what a function expects means every place that
+  calls it needs updating to match, or arguments land in the wrong
+  slot
+
+### The real test: recreating Day 18's exact failure
+- Re-added the blank line after PROFESSIONAL EXPERIENCE, same edit
+  that broke the old eval, shifting chunk count from 16 to 17 and
+  moving every later index by one
+- Result: Top-1 still FAILS the Amazon question, Top-3 still PASSES,
+  identical numbers to before the edit
+- Confirmed this is NOT the same bug returning by coincidence. With
+  the new text-based check, the FAIL is real and honest: chunk 11
+  (the isolated heading) doesn't contain the word "Amazon" at all,
+  so top-1 correctly fails. Chunk 13 (the real Amazon paragraph)
+  does contain it and gets pulled in at top-3, correctly passing.
+  The eval never went stale, it just kept telling the truth,
+  through a structural change that would have broken it yesterday
+
+### Why this matters
+Yesterday's FAIL and today's FAIL look identical on screen, but
+mean completely different things. Yesterday's was the test itself
+lying, broken by an edit unrelated to retrieval quality. Today's is
+the test correctly reporting a real, known limitation (a bare
+heading outscoring real content at top-1). A trustworthy eval
+should survive document changes and still report the true state of
+the system, not just produce numbers that happen to look the same.
+
+### Big picture
+This closes the loop from Day 18 properly. The pipeline now has
+retrieval, caching that's actually trustworthy, and an evaluation
+harness that won't quietly lie after the document it's testing
+changes shape.
