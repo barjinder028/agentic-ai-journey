@@ -46,9 +46,6 @@ print(response["messages"][-1].content)
 
 ---------------------------------------------------------------------Output---------------------------------------------------------------
 
-[{'type': 'text', 'text': 'Hello Barji! Nice to meet you. How can I help you today?', 'extras': {'signature': ...............'}}]
-[{'type': 'text', 'text': 'Your name is Barji. How can I help you today?', 'extras': {'signature': .........................'}}]
-(.venv) barji@Barry:~/projects/agentic-ai-journey/day22$ python3 agent_memory.py
 [{'type': 'text', 'text': 'Nice to meet you, Barji! How can I help you today?', 'extras': {'signature': ....................'}}]
 [{'type': 'text', 'text': 'Your name is Barji.', 'extras': {'signature': ........................'}}]
 [{'type': 'text', 'text': "I don't know your name yet! Since I don't have access to your personal information, you'll have to tell me what it is. What should I call you?", 'extras': {'signature': ...............................}}]
