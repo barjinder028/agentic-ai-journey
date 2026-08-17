@@ -1451,3 +1451,59 @@ agent, tool decorator, message list, the tool-call loop, is something
 I already built by hand between Day 9 and Day 11. Today was about
 recognizing the same mechanism wearing a framework's clothes, not
 learning it for the first time.
+
+
+## Day 22 — Real memory across separate conversations with thread_id
+
+### What I covered
+- Added InMemorySaver as a checkpointer to create_agent
+- Learned thread_id, a label identifying one specific conversation
+- Proved two separate threads on the same agent stay completely
+  independent, unlike anything my own Day 11 code could do without
+  real extra work
+
+### The actual gap in my own Day 11 code
+- self.history lived on one Agent object. Serving two people at once
+  meant creating two separate Agent objects by hand
+  (agent_1 = Agent(), agent_2 = Agent()), each managing its own
+  history
+- That doesn't scale to a real deployed agent serving many users at
+  once. LangGraph's checkpointer solves this properly: one agent
+  object, many independent conversations, identified by thread_id
+
+### How it works
+- checkpointer=InMemorySaver() gives the agent a real memory store,
+  same conceptual job as self.history, but built to hold many
+  separate histories at once, not just one
+- thread_id, passed as {"configurable": {"thread_id": "..."}} on
+  every invoke() call, tells LangGraph which conversation's history
+  to load and continue
+- InMemorySaver only holds memory while the program runs, same
+  limitation as my own self.history always had. Real deployed
+  agents use a database-backed version instead (PostgresSaver, for
+  Postgres), so memory survives a restart. Not needed yet, just
+  worth knowing the name for later
+
+### The real test
+- thread_1: told the agent my name, then asked for it back.
+  Correctly remembered it, same as Day 6's test
+- thread_2, brand new, never used before: asked for my name.
+  Correctly said it didn't know, "I don't know your name yet,"
+  even though thread_1 had learned it moments earlier in the same
+  running script
+- This is the actual proof memory is scoped to the thread, not to
+  the agent or the script. Same agent, same memory store, two fully
+  independent conversations
+
+### Reading LangChain's response shape
+- Every response comes back as a list holding one dictionary:
+  [{'type': 'text', 'text': '...', 'extras': {...}}]
+- The real content always sits at response["messages"][-1].content,
+  the "extras" field is internal signature/bookkeeping data, safe
+  to ignore
+
+### Big picture
+Yesterday was the same mechanism, fewer lines. Today was a genuine
+new capability my own from-scratch code didn't have: one agent
+serving many completely separate conversations at once, which is
+exactly what a real deployed agent needs to do.
