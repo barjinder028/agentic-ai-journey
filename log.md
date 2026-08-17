@@ -1381,3 +1381,73 @@ This closes the loop from Day 18 properly. The pipeline now has
 retrieval, caching that's actually trustworthy, and an evaluation
 harness that won't quietly lie after the document it's testing
 changes shape.
+
+
+## Day 21 — First real framework: LangChain
+
+### What I covered
+- Installed langchain and langchain-google-genai
+- Rebuilt Day 10's tools using LangChain's @tool decorator
+- Built and ran a working agent with create_agent, in under 15 lines
+- Hit and fixed a real bug: a filename shadowing an installed package
+- Explained precisely what create_agent is doing internally, using my
+  own Day 11 code as the reference
+
+### Same concepts, framework's clothes
+- @tool decorator wraps a plain function, same shape as every tool
+  I've written since Day 5. The docstring underneath still does the
+  exact same job it always did, telling the model when this tool is
+  relevant, no new concept, just a new way of marking it
+- tools = [get_today_date, add_numbers], a plain list, replaces the
+  self.available_tools dictionary I built by hand in Day 11.
+  LangChain builds that name-to-function lookup internally
+- {"role": "user", "content": ...} is the same role/content shape
+  I built by hand in Day 6's history list, just wrapped in a
+  dictionary called "messages" instead of a list I managed myself
+
+### Real bug: naming a file after the package I was importing
+- Named my file langchain.py, then wrote "from langchain.agents
+  import create_agent" inside it
+- Python checks the current folder before installed packages, so it
+  found my own file first and tried to import from itself:
+  "'langchain' is not a package"
+- Fixed by renaming to agent_test.py. General rule: never name a
+  personal file the same as a package being imported, this applies
+  to any package name, not just langchain
+
+### Real test, same as Day 11's
+- Asked one question needing two separate tool calls (today's date,
+  then add two numbers). Got the correct final answer,
+  "Today's date is August 17, 2026, and 59 plus 97 is 156," on the
+  first try
+- Noticed the raw response object is wrapped in extra metadata
+  (signatures, internal bookkeeping) that has nothing to do with the
+  actual answer, real content lives in the "text" field. Frameworks
+  wrap things in more layers than my own hand-built code did
+
+### What create_agent is actually doing (the real answer, not the
+vague one)
+- On every single iteration, it checks whether the model's response
+  needs another tool call. If yes, it runs the tool (possibly the
+  same tool again, possibly a different one) and loops back with the
+  new information. If no, it returns the final answer to the user.
+- This is exactly my own Day 11 while loop (rounds < max_rounds,
+  checking response.function_calls each pass), just running
+  invisibly. My first answer to this question was too vague ("it
+  automates the cycle"), had to trace back through my own code to
+  state precisely what decision gets made on each pass
+
+### Line count comparison
+- My Day 11 Agent class (with round limits and tool error handling):
+  well past 50 lines
+- Same real capability with create_agent: under 15 lines
+- The gap is the actual value of a framework, and it's only visible
+  to me now because I already know what those missing 35+ lines were
+  doing, rather than treating create_agent as unexplained magic
+
+### Big picture
+Nothing conceptually new happened today. Every piece of LangChain's
+agent, tool decorator, message list, the tool-call loop, is something
+I already built by hand between Day 9 and Day 11. Today was about
+recognizing the same mechanism wearing a framework's clothes, not
+learning it for the first time.

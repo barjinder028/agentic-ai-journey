@@ -26,3 +26,4 @@ Full daily log: see [log.md](log.md)
 - Day 18: Ran the full pipeline on a real resume, found and diagnosed a genuine similarity-search limitation and an eval-design fragility
 - Day 19: Fixed the eval fragility from Day 18, evaluation now checks retrieved text instead of a fragile chunk index
 - **[RAG Resume Assistant](projects/rag-resume-assistant)** — first capstone project: a full retrieval-augmented generation pipeline with a working evaluation harness, built from Day 12 through Day 19
+- Day 21: First framework (LangChain) — rebuilt the Day 11 agent with create_agent and @tool, recognized every internal piece from building it by hand
