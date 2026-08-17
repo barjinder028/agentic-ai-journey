@@ -1507,3 +1507,81 @@ Yesterday was the same mechanism, fewer lines. Today was a genuine
 new capability my own from-scratch code didn't have: one agent
 serving many completely separate conversations at once, which is
 exactly what a real deployed agent needs to do.
+
+
+## Day 23 — Multi-agent supervisor, and switching to Azure OpenAI
+
+### What I covered
+- Built two specialized agents (date_agent, math_agent) and a
+  supervisor routing between them
+- Hit a hard daily quota wall on Gemini's free tier for
+  gemini-3.5-flash (20 requests/day), switched providers entirely
+  to my own Azure OpenAI deployment (gpt-5-mini)
+- Set up keyless authentication with DefaultAzureCredential instead
+  of a static API key
+- Diagnosed and fixed a real bug caused by a retry wrapper hiding a
+  method the supervisor needed
+- Confirmed routing worked correctly across a real multi-part
+  question
+
+### The supervisor pattern
+- Two specialist agents, each with a narrow tool set and a
+  system_prompt explicitly telling it to refuse anything outside
+  its lane
+- create_supervisor([date_agent, math_agent], model=..., prompt=...)
+  builds a third agent whose only job is reading a question and
+  deciding which specialist should handle it
+- Confirmed real routing: one question needing both specialists in
+  a single turn ("today's date, and separately, 100 plus 250") got
+  the correct answer from both
+
+### Why retries hit a wall here, and the real fix
+- .with_retry() doesn't add retry behavior to the model object
+  directly, it wraps the model inside a different, generic object
+  (RunnableRetry) that only exposes the few methods every runnable
+  shares
+- create_supervisor internally needs .bind_tools(), a specific
+  method only the real AzureChatOpenAI object has. Once wrapped,
+  that method was hidden, hence: AttributeError: 'RunnableRetry'
+  object has no attribute 'bind_tools'
+- Real fix: use max_retries=5 as a normal constructor argument on
+  AzureChatOpenAI directly, instead of wrapping the finished object
+  afterward. Keeps the actual object intact with every method it
+  originally had
+
+### Switching to Azure OpenAI, keyless
+- Used DefaultAzureCredential + get_bearer_token_provider instead
+  of a static API key, no secret string sitting in .env at all
+- Needed az login first, so DefaultAzureCredential has a real local
+  session to authenticate with, since this isn't running inside an
+  Azure-hosted service with automatic managed identity
+- AzureChatOpenAI takes azure_deployment, api_version,
+  azure_endpoint, and azure_ad_token_provider instead of an api_key
+
+### Raw SDK call vs. framework layer, a real distinction
+- Considered using client.responses.create(...) directly (the raw
+  OpenAI SDK's Responses API) inside the LangChain code
+- These are two separate ways of calling the same underlying model,
+  not one built on top of the other. create_agent and
+  create_supervisor are built to work with LangChain model objects
+  (AzureChatOpenAI), not raw SDK client calls
+- The raw SDK call is what I'd write by hand, no framework, the way
+  Day 4 through Day 11 worked. AzureChatOpenAI is LangChain's
+  equivalent, wired so the framework functions can use it directly
+
+### Real bug count today
+1. Missing imports (tool, create_supervisor) after assembling code
+   from several separate messages, same "every name needs a real
+   import in this specific file" lesson from Day 21
+2. Gemini daily quota exhausted (20/day on gemini-3.5-flash),
+   solved by switching providers entirely, not something retry
+   logic could fix
+3. RunnableRetry wrapper hiding bind_tools, fixed by using
+   max_retries as a constructor argument instead of wrapping
+
+### Big picture
+Genuinely hit and diagnosed three different real-world failure
+modes today, on a provider I'd never touched before this session,
+by reading each error for what it actually said rather than
+guessing. That's the actual skill this whole program has been
+building toward.
