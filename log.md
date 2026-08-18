@@ -1663,3 +1663,61 @@ failure surface on top of everything a single agent can already get
 wrong, and the fix has to happen at the level where the decision
 was actually made, not by patching the specialist that never even
 ran.
+
+## Day 25 — A real evaluation harness for routing, not just answers
+
+### What I covered
+- Built a reusable function to identify which specialist actually
+  answered a question, by reading the message trace
+- Built a routing-specific evaluation set and harness, same shape
+  as Day 15 and Day 19's retrieval evals, but testing a different
+  layer of the system
+- Deliberately included yesterday's exact bug as a regression test
+- Ran it and confirmed 100% routing accuracy across all five cases
+
+### Why this needed its own eval, separate from retrieval
+- Yesterday's bug wasn't in resume_agent's grounding, it was in
+  whether the question ever reached resume_agent at all. Testing
+  specialists individually (already proven solid) says nothing
+  about whether the supervisor is routing questions to them
+  correctly in the first place
+- Needed a test aimed specifically at the routing decision, not the
+  final answer's content
+
+### get_routed_agent(), the reusable version of yesterday's manual trace
+- Loops through response["messages"], same as the manual print from
+  Day 24, and returns the name of the first real specialist that
+  shows up
+- Returns "supervisor" if no specialist ever appears, exactly what
+  would have flagged yesterday's bug immediately and automatically,
+  instead of relying on noticing the wording of an answer sounded
+  off
+
+### The eval set, including a deliberate regression test
+- Five questions, each with a known correct specialist
+  (expected_agent)
+- Included the exact "What is Barjinder's favorite food?" question
+  that broke routing on Day 24, on purpose. This turns a bug I
+  already found and fixed into something that gets automatically
+  re-checked every time this eval runs, rather than something that
+  could quietly break again unnoticed
+
+### Result
+- 100% routing accuracy, all five questions correctly routed,
+  including the regression case
+- Confirms the Day 24 supervisor prompt fix is a real, checkable
+  property of the system now, not just something that happened to
+  work the one time I retested it by hand
+
+### Honest limit of this eval
+- Five hand-picked, fairly clear-cut questions. Doesn't test harder
+  cases: a question that plausibly touches two specialists at once,
+  or ambiguous phrasing where reasonable routing could go either
+  way. A real scope limit, not a claim the router is bulletproof
+
+### Big picture
+Same evaluation discipline from Day 15 and Day 19, applied to a
+new layer of the system. Retrieval accuracy, grounding, and now
+routing accuracy are all separately measured and separately
+regression-tested, rather than trusting the system just because a
+few manual test questions happened to look right.

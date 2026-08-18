@@ -30,3 +30,4 @@ Full daily log: see [log.md](log.md)
 - Day 22: Real cross-conversation memory with LangGraph's checkpointer and thread_id, a capability my own from-scratch agent couldn't do without real extra work
 - Day 23: Multi-agent supervisor pattern, migrated to Azure OpenAI with keyless auth after hitting a real provider quota wall
 - Day 24: Wired the RAG capstone in as a third supervisor specialist, found and fixed a real routing bug where the supervisor silently answered instead of handing off
+- Day 25: Built a routing evaluation harness with a deliberate regression test for the Day 24 supervisor bug, 100% accuracy
