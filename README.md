@@ -29,3 +29,4 @@ Full daily log: see [log.md](log.md)
 - Day 21: First framework (LangChain) — rebuilt the Day 11 agent with create_agent and @tool, recognized every internal piece from building it by hand
 - Day 22: Real cross-conversation memory with LangGraph's checkpointer and thread_id, a capability my own from-scratch agent couldn't do without real extra work
 - Day 23: Multi-agent supervisor pattern, migrated to Azure OpenAI with keyless auth after hitting a real provider quota wall
+- Day 24: Wired the RAG capstone in as a third supervisor specialist, found and fixed a real routing bug where the supervisor silently answered instead of handing off

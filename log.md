@@ -1585,3 +1585,81 @@ modes today, on a provider I'd never touched before this session,
 by reading each error for what it actually said rather than
 guessing. That's the actual skill this whole program has been
 building toward.
+
+
+## Day 24 — Resume search as a third specialist, and a real routing bug
+
+### What I covered
+- Wrapped the RAG capstone's search into a LangChain tool
+  (search_resume) and built resume_agent as a third specialist
+  alongside date_agent and math_agent
+- Hit and fixed a real chain of missing-function bugs while
+  assembling the file from several separate pieces
+- Clarified a real architecture decision: chat model on Azure
+  (gpt-5-mini), embeddings kept on Gemini, two separate systems
+  with separate quotas, not a leftover mistake
+- Found and fixed a real, subtle bug: the supervisor silently
+  answering a question itself instead of routing it to the
+  specialist that actually had the answer
+
+### Missing functions, same lesson as before, several times over
+- load_document, then get_or_create_embeddings and its dependencies
+  (save_embeddings, load_embeddings, get_chunks_hash, search,
+  cosine_similarity), then date_agent and math_agent themselves,
+  none of it carried over automatically from earlier files
+- Fixed by checking the actual file directly (grep -n "^def ")
+  instead of guessing which functions were missing one error at a
+  time. Assembling a file from pieces of several different
+  conversations means every dependency needs to be checked for
+  directly, not assumed present
+
+### Chat model vs. embedding model, a real distinction
+- These are genuinely separate services with separate quotas, not
+  one thing. Switching AzureChatOpenAI for chat never touched
+  embeddings at all, since embed_content is a different call
+  entirely
+- Kept embeddings on Gemini deliberately (never actually hit that
+  quota), chat on Azure. A full Azure-only setup is possible too
+  (AzureOpenAIEmbeddings, a separate model deployment) but is a
+  real, separate task, not something to bolt on mid-debugging
+
+### The real bug: routing failure, not grounding failure
+- Asked resume_agent-shaped questions about real resume content
+  (Amazon, programming languages): both correct, grounded, real
+  proof the specialist's Day 14 discipline held up inside the
+  framework
+- Asked a question the resume doesn't cover ("favorite food"): got
+  "I don't have any information about who Barjinder is", even
+  though the SAME script had just correctly discussed Barjinder's
+  real work history moments earlier
+- Diagnosed by printing the full message trace
+  (type, name, content for every message), not by guessing from the
+  final answer's tone. This showed the response came from
+  "supervisor" directly, not "resume_agent" at all: the question
+  never reached the specialist in the first place
+- Root cause: the supervisor's prompt described what each
+  specialist covers by topic, but never said what to do with a
+  question that doesn't obviously match any topic by name. It
+  silently judged the question unrelated to "resume" and answered
+  it itself, with no tools and no context
+
+### The fix
+- Made the supervisor's routing instruction explicit: any question
+  mentioning Barjinder should go to resume_agent, even if the
+  supervisor doesn't personally know the answer, and it should never
+  answer directly if a specialist might have relevant information
+- Reran the same food question and the same trace afterward.
+  Confirmed a full six-message round trip this time: supervisor
+  hands off (transfer_to_resume_agent), resume_agent correctly says
+  it doesn't know, hands back (transfer_back_to_supervisor),
+  supervisor relays the honest answer rather than overriding it
+
+### Big picture
+This is a genuinely different failure mode than anything hit before
+in this project: not a tool failing, not a specialist guessing, but
+the routing layer itself silently deciding a question wasn't worth
+handing off. Multi-agent systems add exactly this kind of new
+failure surface on top of everything a single agent can already get
+wrong, and the fix has to happen at the level where the decision
+was actually made, not by patching the specialist that never even
+ran.
