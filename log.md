@@ -1721,3 +1721,64 @@ new layer of the system. Retrieval accuracy, grounding, and now
 routing accuracy are all separately measured and separately
 regression-tested, rather than trusting the system just because a
 few manual test questions happened to look right.
+
+
+## Day 26 — Real cost visibility, per question
+
+### What I covered
+- Learned that every model response carries its own usage_metadata,
+  token counts, automatically
+- Built get_total_usage(), summing token counts across every
+  message in a multi-agent response, not just the last one
+- Built a real cost calculator from per-token pricing
+- Ran it against the Day 25 eval set and found a real, explainable
+  cost pattern
+
+### Why summing matters
+- A single app.invoke() on the supervisor can trigger several
+  separate model calls under the hood (supervisor decides,
+  specialist runs, supervisor relays), same trace structure from
+  Day 24/25
+- Each of those calls has its own separate usage_metadata. Looking
+  only at the final message would undercount the real cost of the
+  whole question
+
+### Real numbers from the eval set
+- Date question: 876+322 tokens, $0.000863
+- Math question: 874+166 tokens, $0.000550
+- Amazon question (resume_agent, real retrieved context): 1191+680
+  tokens, $0.001658
+- Food question (resume_agent, honest refusal, no real context to
+  relay): 985+427 tokens, $0.001100
+- Languages question (resume_agent, real retrieved context):
+  1036+388 tokens, $0.001035
+
+### The real finding
+- Questions that route to resume_agent cost roughly double the
+  date/math questions, confirms the prediction: more agents
+  involved means more total tokens
+- But cost isn't just about HOW MANY agents get involved. The food
+  question also reached resume_agent but cost less than Amazon or
+  languages, because the answer was a short refusal with no
+  retrieved context to relay, while Amazon and languages carried
+  several hundred words of real resume text in the prompt
+- Real, useful distinction: routing overhead (deciding who answers)
+  and context volume (how much retrieved text gets relayed) are two
+  separate cost drivers, not one
+
+### Pricing honesty
+- Found genuinely conflicting numbers for gpt-5-mini pricing across
+  different sources while researching this, some roughly double
+  others, likely reflecting pricing changes over time
+- Used placeholder constants (INPUT_COST_PER_MILLION,
+  OUTPUT_COST_PER_MILLION) instead of hardcoding a number I wasn't
+  fully confident in, with a note to verify against Azure's actual
+  current pricing page for the real deployment before trusting the
+  dollar figures for anything beyond relative comparison
+
+### Big picture
+This is the actual "agent that costs ₹40 a call is a failed agent"
+lesson from Day 1, made concrete and measurable for the first time.
+Cost per question is now something I can report a real number for,
+and explain what drives it, not just something I vaguely know
+exists.
