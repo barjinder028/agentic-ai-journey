@@ -31,3 +31,4 @@ Full daily log: see [log.md](log.md)
 - Day 23: Multi-agent supervisor pattern, migrated to Azure OpenAI with keyless auth after hitting a real provider quota wall
 - Day 24: Wired the RAG capstone in as a third supervisor specialist, found and fixed a real routing bug where the supervisor silently answered instead of handing off
 - Day 25: Built a routing evaluation harness with a deliberate regression test for the Day 24 supervisor bug, 100% accuracy
+- **[Multi-agent supervisor system](projects/multi-agent-supervisor)** - second capstone: a supervisor agent routing across three specialists, with a routing evaluation harness and a diagnosed, fixed delegation bug
