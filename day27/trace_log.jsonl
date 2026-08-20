@@ -1,0 +1,10 @@
+{"timestamp": 1787242802.0829892, "question": "What is today's date?", "routed_agent": "date_agent", "input_tokens": 868, "output_tokens": 320, "cost": 0.000857, "latency_seconds": 13.085}
+{"timestamp": 1787242811.3247051, "question": "What is 15 plus 27?", "routed_agent": "math_agent", "input_tokens": 874, "output_tokens": 172, "cost": 0.0005625000000000001, "latency_seconds": 9.241}
+{"timestamp": 1787242828.567702, "question": "What did Barjinder do at Amazon?", "routed_agent": "resume_agent", "input_tokens": 1192, "output_tokens": 800, "cost": 0.001898, "latency_seconds": 17.243}
+{"timestamp": 1787242842.3184605, "question": "What is Barjinder's favorite food?", "routed_agent": "resume_agent", "input_tokens": 984, "output_tokens": 500, "cost": 0.0012460000000000001, "latency_seconds": 13.751}
+{"timestamp": 1787242853.6127934, "question": "What programming languages does Barjinder know?", "routed_agent": "resume_agent", "input_tokens": 1004, "output_tokens": 325, "cost": 0.0009009999999999999, "latency_seconds": 11.294}
+{"timestamp": 1787243163.371036, "question": "What is today's date?", "routed_agent": "date_agent", "input_tokens": 868, "output_tokens": 320, "cost": 0.000857, "latency_seconds": 15.1}
+{"timestamp": 1787243173.0273788, "question": "What is 15 plus 27?", "routed_agent": "math_agent", "input_tokens": 874, "output_tokens": 172, "cost": 0.0005625000000000001, "latency_seconds": 9.656}
+{"timestamp": 1787243188.0189347, "question": "What did Barjinder do at Amazon?", "routed_agent": "resume_agent", "input_tokens": 1190, "output_tokens": 613, "cost": 0.0015235000000000001, "latency_seconds": 14.991}
+{"timestamp": 1787243201.7713032, "question": "What is Barjinder's favorite food?", "routed_agent": "resume_agent", "input_tokens": 984, "output_tokens": 536, "cost": 0.0013180000000000002, "latency_seconds": 13.752}
+{"timestamp": 1787243214.307741, "question": "What programming languages does Barjinder know?", "routed_agent": "resume_agent", "input_tokens": 1031, "output_tokens": 378, "cost": 0.0010137500000000001, "latency_seconds": 12.536}

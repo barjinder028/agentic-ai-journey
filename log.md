@@ -1782,3 +1782,17 @@ lesson from Day 1, made concrete and measurable for the first time.
 Cost per question is now something I can report a real number for,
 and explain what drives it, not just something I vaguely know
 exists.
+
+## Day 27 — Making cost and latency permanent
+
+- Today was about making yesterday's cost numbers permanent instead of throwaway. Everything from Day 26 printed to the terminal and vanished the moment the script ended, which is fine for a one-off test and useless for anything you'd want to look back on later. So I built a trace log: every call to the supervisor now appends one line to a file called `trace_log.jsonl`, recording the question, which agent handled it, the token counts, the cost, and how long the whole thing took.
+
+- The format matters more than it looks. JSONL means one complete JSON object per line, not one giant array. That's the difference between appending a single line to the end of a file and rewriting the entire file every time you add something, the same wasteful pattern I avoided back on Day 17 with the embeddings cache. Cheap to write, and you can read it one line at a time without loading the whole thing into memory.
+
+- Building it turned up the usual kind of bug. I'd copied fifteen of the sixteen functions this needed into the new file and missed exactly one, `get_total_usage`, the very function `traced_invoke` calls first. Found it fast with `grep -n "^def "`, comparing what the file actually had against what the code was asking for, rather than guessing line by line.
+
+- Once it ran, two things stood out. First, I ran the script twice, and the analysis correctly reported six calls to `resume_agent` instead of three, because append mode means every past run stays in the file. That's not a side effect, that's the whole point working exactly as intended.
+
+- Second, and more interesting: I predicted `resume_agent`'s average latency would land somewhere between `date_agent` and `math_agent`, since one of its three questions gets a short, fast refusal that should pull the average down. The real numbers said otherwise. `date_agent` averaged 14.09 seconds, `resume_agent` averaged 13.93, essentially tied. My reasoning wasn't wrong, exactly, it just wasn't the whole picture. `math_agent`, doing the least real work of the three, still beat both by several seconds.
+
+- Digging into why, both `date_agent` and `math_agent` make exactly two calls to Azure per question, the supervisor deciding, then the specialist answering. `resume_agent` adds a third real network call in between, embedding the question through Gemini before it can even search. That extra hop should have made it noticeably slower. It barely moved the number. Which points at something worth remembering: the fixed cost of just reaching the model provider and getting anything back seems to dominate total latency far more than how much actual work happens once you're there. If that holds up, the way to make this system faster isn't to speed up what any single agent does internally, it's to cut the number of separate round trips a question needs in the first place.
