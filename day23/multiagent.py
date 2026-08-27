@@ -6,6 +6,7 @@ from langchain.agents import create_agent
 from datetime import date
 from langgraph_supervisor import create_supervisor
 from langchain.chat_models import init_chat_model
+import os
 
 load_dotenv()
 
@@ -17,7 +18,7 @@ token_provider = get_bearer_token_provider(
 model = AzureChatOpenAI(
     azure_deployment="gpt-5-mini",
     api_version="2024-05-01-preview",
-    azure_endpoint="https://barjinder0228-8766-resource.services.ai.azure.com/",
+    azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
     azure_ad_token_provider=token_provider,
     max_retries=5,
 )
