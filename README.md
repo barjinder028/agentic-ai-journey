@@ -32,3 +32,6 @@ Daily log of learning to build AI agents from scratch, on the way to an agentic 
 - [Multi-agent supervisor system](projects/multi-agent-supervisor): second capstone, a supervisor agent routing across three specialists, with a routing evaluation harness and a diagnosed, fixed delegation bug
 - Day 26: Built real cost tracking, tokens and dollars per question, found routing overhead and retrieved-context volume are separate cost drivers
 - Day 27: Built a permanent JSONL trace log with cost and latency tracking. A wrong prediction about which agent would be slowest led to a real finding, network round trips matter more than task complexity for latency in this system.
+
+- Day 28: Researched resume prompt injection, a real, documented attack against AI hiring tools, and built a poisoned version of my own resume to test against
+- Day 29: Ran the injection test on Azure. Found the grounding rule holds on factual questions and fails on evaluative ones, the injected text successfully hijacked a "should I hire" question into an unearned recommendation
