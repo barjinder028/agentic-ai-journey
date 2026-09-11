@@ -36,3 +36,4 @@ Daily log of learning to build AI agents from scratch, on the way to an agentic 
 - Day 28: Researched resume prompt injection, a real, documented attack against AI hiring tools, and built a poisoned version of my own resume to test against
 - Day 29: Ran the injection test on Azure. Found the grounding rule holds on factual questions and fails on evaluative ones, the injected text successfully hijacked a "should I hire" question into an unearned recommendation
 - Day 30: Built and confirmed two independent defenses against the Day 29 injection attack, a hardened untrusted-content prompt and a separate keyword-flagging layer, both firing correctly on the same attack. Chased down four real Azure auth and API-version failures along the way.
+- Day 31: Built a real evaluation set for the injection defense itself, four attack variants and three clean false-positive checks. 4/4 caught, 3/3 correctly ignored, with an honest note on the limits of keyword-based detection
